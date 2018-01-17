@@ -1,5 +1,5 @@
 require('../support');
-var _ = require('ramda');
+var R = require('ramda');
 var accounting = require('accounting');
   
 // Example Data
@@ -14,16 +14,24 @@ var CARS = [
 
 // Exercise 1:
 // ============
-// use _.compose() to rewrite the function below. Hint: _.prop() is curried.
-var isLastInStock = function(cars) {
-  var reversed_cars = _.last(cars);
-  return _.prop('in_stock', reversed_cars)
-};
+// use R.compose() to rewrite the function below. Hint: R.prop() is curried.
+//var isLastInStock = function(cars) {
+  // var reversed_cars = R.last(cars);
+  // return R.prop('in_stock', reversed_cars)
+// };
+
+const isLastInStock = R.compose(
+  R.prop('in_stock'),
+  R.last
+)
 
 // Exercise 2:
 // ============
-// use _.compose(), _.prop() and _.head() to retrieve the name of the first car
-var nameOfFirstCar = undefined;
+// use R.compose(), R.prop() and R.head() to retrieve the name of the first car
+const nameOfFirstCar = R.compose(
+  R.prop('name'),
+  R.head
+)
 
 
 // Exercise 3:
@@ -31,11 +39,10 @@ var nameOfFirstCar = undefined;
 // Use the helper function _average to refactor averageDollarValue as a composition
 var _average = function(xs) { return reduce(add, 0, xs) / xs.length; }; // <- leave be
 
-var averageDollarValue = function(cars) {
-  var dollar_values = map(function(c) { return c.dollar_value; }, cars);
-  return _average(dollar_values);
-};
-
+const averageDollarValue = R.compose(
+  _average,
+  R.map(R.prop('dollar_value'))
+)
 
 // Exercise 4:
 // ============
@@ -43,31 +50,40 @@ var averageDollarValue = function(cars) {
 
 var _underscore = replace(/\W+/g, '_'); //<-- leave this alone and use to sanitize
 
-var sanitizeNames = undefined;
+const sanitizeNames = R.compose(
+  R.map(R.toLower),
+  R.map(_underscore),
+  R.map(R.prop('name'))
+)
 
 
 // Bonus 1:
 // ============
 // Refactor availablePrices with compose.
 
-var availablePrices = function(cars) {
-  var available_cars = _.filter(_.prop('in_stock'), cars);
-  return available_cars.map(function(x){
-    return accounting.formatMoney(x.dollar_value)
-  }).join(', ');
-};
-
+// var availablePrices = function(cars) {
+//   var available_cars = R.filter(R.prop('in_stock'), cars);
+//   return available_cars.map(function(x){
+//     return accounting.formatMoney(x.dollar_value)
+//   }).join(', ');
+// };
+const availablePrices = R.compose(
+  R.join(', '),
+  R.map(accounting.formatMoney),
+  R.map(R.prop('dollar_value')),
+  R.filter(R.prop('in_stock'))
+)
 
 // Bonus 2:
 // ============
-// Refactor to pointfree. Hint: you can use _.flip()
+// Refactor to pointfree. Hint: you can use R.flip()
 
-var fastestCar = function(cars) {
-  var sorted = _.sortBy(function(car){ return car.horsepower }, cars);
-  var fastest = _.last(sorted);
-  return fastest.name + ' is the fastest';
-};
-
+const fastestCar = R.compose(
+  R.flip(R.concat)(' is the fastest'),
+  R.prop('name'),
+  R.last,
+  R.sortBy(R.prop('horsepower'))
+)
 
 module.exports = { CARS: CARS,
                    isLastInStock: isLastInStock,
